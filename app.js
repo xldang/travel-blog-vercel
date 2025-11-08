@@ -31,8 +31,12 @@ app.use(methodOverride('_method'));
 app.use(session({
     secret: process.env.SESSION_SECRET || 'travel-blog-secret-key',
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        httpOnly: true
+    }
 }));
 app.use(flash());
 

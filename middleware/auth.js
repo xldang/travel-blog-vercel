@@ -17,6 +17,13 @@ const isAdmin = async (req, res, next) => {
   console.log('  - req.session.userId:', req.session?.userId);
   console.log('  - req.session.role:', req.session?.role);
 
+  // 首先检查session中的角色信息（避免数据库查询）
+  if (req.session && req.session.userId && req.session.role === 'admin') {
+    console.log('DEBUG: Session shows admin role, proceeding...');
+    return next();
+  }
+
+  // 如果session中没有角色信息，才查询数据库
   if (req.session && req.session.userId) {
     try {
       console.log('DEBUG: Querying user from database...');
@@ -26,6 +33,8 @@ const isAdmin = async (req, res, next) => {
       console.log('DEBUG: User found:', user ? { id: user.id, username: user.username, role: user.role } : null);
 
       if (user && user.role === 'admin') {
+        // 更新session中的角色信息
+        req.session.role = user.role;
         console.log('DEBUG: User is admin, proceeding...');
         return next();
       } else {
@@ -33,6 +42,11 @@ const isAdmin = async (req, res, next) => {
       }
     } catch (error) {
       console.error('权限验证错误:', error);
+      // 数据库查询失败时，如果session显示是admin，也允许通过
+      if (req.session.role === 'admin') {
+        console.log('DEBUG: Database query failed but session shows admin, proceeding...');
+        return next();
+      }
     }
   } else {
     console.log('DEBUG: No valid session found');
