@@ -30,24 +30,48 @@ const upload = multer({
 });
 
 router.get('/travels', async (req, res) => {
+  console.log('DEBUG: Accessing /travels route');
+  console.log('DEBUG: Request headers:', JSON.stringify(req.headers, null, 2));
+  console.log('DEBUG: Environment variables check:');
+  console.log('  - DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  console.log('  - SESSION_SECRET exists:', !!process.env.SESSION_SECRET);
+
   try {
+    console.log('DEBUG: Attempting to connect to database...');
+    await prisma.$connect();
+    console.log('DEBUG: Database connection successful');
+
+    console.log('DEBUG: Querying travels...');
     const travels = await prisma.travel.findMany({
       orderBy: {
         createdAt: 'desc'
       }
     });
+    console.log(`DEBUG: Found ${travels.length} travels`);
 
     // 转换图片URL为OBS URL
     travels.forEach(travel => {
       if (travel.coverImage) {
+        const originalUrl = travel.coverImage;
         travel.coverImage = convertToObsUrl(travel.coverImage);
+        console.log(`DEBUG: Converted image URL: ${originalUrl} -> ${travel.coverImage}`);
       }
     });
 
+    console.log('DEBUG: Rendering travels/index template');
     res.render('travels/index', { travels });
+    console.log('DEBUG: Template rendered successfully');
   } catch (error) {
-    console.error('获取游记列表失败:', error);
+    console.error('ERROR: 获取游记列表失败:', error);
+    console.error('ERROR: Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack
+    });
+
     // 避免重定向循环，直接渲染空列表
+    console.log('DEBUG: Rendering empty travels list due to error');
     res.render('travels/index', { travels: [] });
   }
 });

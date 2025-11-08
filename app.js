@@ -55,22 +55,73 @@ app.get('/', (req, res) => {
 
 // 健康检查路由
 app.get('/health', async (req, res) => {
+    console.log('DEBUG: Health check requested');
+    console.log('DEBUG: Environment variables:');
+    console.log('  - DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+    console.log('  - SESSION_SECRET:', process.env.SESSION_SECRET ? 'SET' : 'NOT SET');
+    console.log('  - OBS_ACCESS_KEY_ID:', process.env.OBS_ACCESS_KEY_ID ? 'SET' : 'NOT SET');
+    console.log('  - NODE_ENV:', process.env.NODE_ENV);
+
     try {
+        console.log('DEBUG: Testing database connection...');
         // 测试数据库连接
         await prisma.$connect();
+        console.log('DEBUG: Database connection successful');
+
+        // 测试查询
+        const userCount = await prisma.user.count();
+        const travelCount = await prisma.travel.count();
+        console.log(`DEBUG: Database stats - Users: ${userCount}, Travels: ${travelCount}`);
+
         res.json({
             status: 'ok',
             timestamp: new Date().toISOString(),
-            database: 'connected'
+            database: 'connected',
+            stats: {
+                users: userCount,
+                travels: travelCount
+            },
+            environment: {
+                node_env: process.env.NODE_ENV,
+                has_database_url: !!process.env.DATABASE_URL,
+                has_session_secret: !!process.env.SESSION_SECRET
+            }
         });
     } catch (error) {
+        console.error('ERROR: Health check failed:', error);
+        console.error('ERROR: Error details:', {
+            message: error.message,
+            code: error.code,
+            meta: error.meta
+        });
+
         res.status(500).json({
             status: 'error',
             timestamp: new Date().toISOString(),
             database: 'disconnected',
-            error: error.message
+            error: error.message,
+            code: error.code,
+            environment: {
+                node_env: process.env.NODE_ENV,
+                has_database_url: !!process.env.DATABASE_URL,
+                has_session_secret: !!process.env.SESSION_SECRET
+            }
         });
     }
+});
+
+// 添加全局错误处理中间件
+app.use((err, req, res, next) => {
+    console.error('Global error handler:', err);
+    console.error('Error stack:', err.stack);
+    console.error('Request URL:', req.url);
+    console.error('Request method:', req.method);
+
+    res.status(500).json({
+        error: 'Internal Server Error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Vercel serverless function导出
