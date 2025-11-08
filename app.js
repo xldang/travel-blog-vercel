@@ -53,29 +53,13 @@ app.get('/', (req, res) => {
     res.redirect('/travels');
 });
 
-// 启动服务器（Vercel会处理数据库连接）
-async function startServer() {
-    try {
-        // Load settings into app.locals
-        const titleSetting = await prisma.setting.findUnique({
-            where: { key: 'websiteTitle' }
-        });
+// Vercel serverless function导出
+module.exports = app;
 
-        app.locals.websiteTitle = titleSetting?.value || "DZ's Travel Story";
-        console.log('Website settings loaded.');
-
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-            console.log(`Access the blog at http://localhost:${PORT}`);
-        });
-    } catch (error) {
-        console.error("Failed to load settings:", error);
-        app.locals.websiteTitle = "DZ's Travel Story"; // Default fallback
-
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT} (with settings error)`);
-        });
-    }
+// 本地开发时启动服务器
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`Access the blog at http://localhost:${PORT}`);
+    });
 }
-
-startServer();

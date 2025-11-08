@@ -1,5 +1,5 @@
-const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // 检查用户是否已登录
 const isAuthenticated = (req, res, next) => {
@@ -14,7 +14,9 @@ const isAuthenticated = (req, res, next) => {
 const isAdmin = async (req, res, next) => {
   if (req.session && req.session.userId) {
     try {
-      const user = await User.findByPk(req.session.userId);
+      const user = await prisma.user.findUnique({
+        where: { id: req.session.userId }
+      });
       if (user && user.role === 'admin') {
         return next();
       }
@@ -30,7 +32,9 @@ const isAdmin = async (req, res, next) => {
 const isAdminAPI = async (req, res, next) => {
   if (req.session && req.session.userId) {
     try {
-      const user = await User.findByPk(req.session.userId);
+      const user = await prisma.user.findUnique({
+        where: { id: req.session.userId }
+      });
       if (user && user.role === 'admin') {
         return next();
       }

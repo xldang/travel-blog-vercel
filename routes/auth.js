@@ -1,7 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { PrismaClient } = require('@prisma/client');
 const { isAuthenticated } = require('../middleware/auth');
+
+const prisma = new PrismaClient();
 
 const router = express.Router();
 
@@ -16,7 +18,9 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
     // 查找用户
-    const user = await User.findOne({ where: { username } });
+    const user = await prisma.user.findUnique({
+      where: { username }
+    });
     if (!user) {
       req.flash('error_msg', '用户名或密码错误');
       return res.redirect('/login');
@@ -81,7 +85,9 @@ router.post('/change-password', isAuthenticated, async (req, res) => {
     }
 
     // 查找用户
-    const user = await User.findByPk(userId);
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
     if (!user) {
       req.flash('error_msg', '用户不存在');
       return res.redirect('/login');
@@ -96,8 +102,10 @@ router.post('/change-password', isAuthenticated, async (req, res) => {
 
     // 更新密码
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await user.save();
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
 
     req.flash('success_msg', '密码更新成功！');
     res.redirect('/travels');

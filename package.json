@@ -7,6 +7,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "build": "prisma generate",
+    "postbuild": "echo 'Build completed'",
     "db:migrate": "node scripts/migrate-to-prisma.js",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",

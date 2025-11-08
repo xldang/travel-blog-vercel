@@ -1,13 +1,17 @@
 const express = require('express');
-const { Setting } = require('../models');
+const { PrismaClient } = require('@prisma/client');
 const { isAdmin } = require('../middleware/auth');
+
+const prisma = new PrismaClient();
 
 const router = express.Router();
 
 // Settings page
 router.get('/settings', isAdmin, async (req, res) => {
     try {
-        const titleSetting = await Setting.findByPk('websiteTitle');
+        const titleSetting = await prisma.setting.findUnique({
+            where: { key: 'websiteTitle' }
+        });
         const websiteTitle = titleSetting ? titleSetting.value : "DZ's Travel Story";
         res.render('settings/index', {
             websiteTitle,
@@ -27,7 +31,11 @@ router.get('/settings', isAdmin, async (req, res) => {
 router.post('/settings', isAdmin, async (req, res) => {
     try {
         const { websiteTitle } = req.body;
-        await Setting.upsert({ key: 'websiteTitle', value: websiteTitle });
+        await prisma.setting.upsert({
+            where: { key: 'websiteTitle' },
+            update: { value: websiteTitle },
+            create: { key: 'websiteTitle', value: websiteTitle }
+        });
 
         // Update the title in app.locals so it's reflected immediately
         req.app.locals.websiteTitle = websiteTitle;
