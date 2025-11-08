@@ -271,6 +271,70 @@ async function updateDatabaseImagePaths() {
   }
 }
 
+async function testImageAccess() {
+  console.log('🔍 测试图片访问...');
+
+  const https = require('https');
+  const { convertToObsUrl } = require('../utils/obs');
+
+  try {
+    // 测试数据库中的图片
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+
+    const travels = await prisma.travel.findMany({
+      where: {
+        coverImage: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        title: true,
+        coverImage: true
+      }
+    });
+
+    await prisma.$disconnect();
+
+    console.log(`找到 ${travels.length} 个有图片的游记`);
+
+    for (const travel of travels) {
+      if (travel.coverImage) {
+        const obsUrl = convertToObsUrl(travel.coverImage);
+        console.log(`\n🖼️  测试图片: ${travel.title}`);
+        console.log(`   原始路径: ${travel.coverImage}`);
+        console.log(`   OBS URL: ${obsUrl}`);
+
+        // 测试HTTP访问
+        try {
+          await new Promise((resolve, reject) => {
+            https.get(obsUrl, (res) => {
+              console.log(`   HTTP状态: ${res.statusCode}`);
+              if (res.statusCode === 200) {
+                console.log(`   ✅ 图片可访问`);
+              } else {
+                console.log(`   ❌ 图片访问失败: ${res.statusCode}`);
+              }
+              resolve();
+            }).on('error', (err) => {
+              console.log(`   ❌ 网络错误: ${err.message}`);
+              resolve();
+            });
+          });
+        } catch (error) {
+          console.log(`   ❌ 测试失败: ${error.message}`);
+        }
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ 图片访问测试失败:', error.message);
+    return false;
+  }
+}
+
 async function main() {
   console.log('🚀 开始本地环境测试...\n');
 
@@ -306,4 +370,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = { testDatabase, testOBS, testEnvironment, checkImagePaths, uploadImagesToOBS, updateDatabaseImagePaths };
+module.exports = { testDatabase, testOBS, testEnvironment, checkImagePaths, uploadImagesToOBS, updateDatabaseImagePaths, testImageAccess };

@@ -224,7 +224,7 @@
                         
                         <div class="d-flex align-items-center">
                             <i class="fas fa-route text-info me-2" style="color: #0dcaf0;"></i>
-                            <span class="fw-medium" style="color: #495057;"><%= travel.Itineraries ? travel.Itineraries.length : 0 %> 个行程</span>
+                            <span class="fw-medium" style="color: #495057;"><%= travel.itineraries ? travel.itineraries.length : 0 %> 个行程</span>
                         </div>
                     </div>
                 </div>
@@ -235,9 +235,9 @@
             <div class="col-lg-10 col-xl-8">
                 <!-- 添加行程按钮已移至导航栏 -->
 
-<% if (travel.Itineraries && travel.Itineraries.length > 0) { %>
+<% if (travel.itineraries && travel.itineraries.length > 0) { %>
                     <div class="itinerary-list">
-                        <% travel.Itineraries.forEach((itinerary, index) => { %>
+                        <% travel.itineraries.forEach((itinerary, index) => { %>
                             <div class="itinerary-item">
                                 <div class="card itinerary-card">
                                             <div class="card-body">
@@ -456,8 +456,8 @@
         // 计算总费用
         function calculateTotalCost() {
             let totalCost = 0;
-            <% if (travel.Itineraries && travel.Itineraries.length > 0) { %>
-                <% travel.Itineraries.forEach(itinerary => { %>
+            <% if (travel.itineraries && travel.itineraries.length > 0) { %>
+                <% travel.itineraries.forEach(itinerary => { %>
                     <% if (itinerary.cost) { %>
                         totalCost += parseFloat('<%= itinerary.cost %>') || 0;
                     <% } %>
