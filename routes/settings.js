@@ -15,15 +15,13 @@ router.get('/settings', isAdmin, async (req, res) => {
         const websiteTitle = titleSetting ? titleSetting.value : "DZ's Travel Story";
         res.render('settings/index', {
             websiteTitle,
-            user: {
-                username: req.session.username,
-                role: req.session.role
-            }
+            user: req.user,
+            success: req.query.success,
+            error: req.query.error
         });
     } catch (error) {
         console.error('Error getting settings:', error);
-        req.flash('error_msg', '加载设置页面失败');
-        res.redirect('/travels');
+        res.redirect('/travels?error=' + encodeURIComponent('加载设置页面失败'));
     }
 });
 
@@ -40,12 +38,10 @@ router.post('/settings', isAdmin, async (req, res) => {
         // Update the title in app.locals so it's reflected immediately
         req.app.locals.websiteTitle = websiteTitle;
 
-        req.flash('success_msg', '网站设置已更新');
-        res.redirect('/settings');
+        res.redirect('/settings?success=' + encodeURIComponent('网站设置已更新'));
     } catch (error) {
         console.error('Error updating settings:', error);
-        req.flash('error_msg', '更新设置失败');
-        res.redirect('/settings');
+        res.redirect('/settings?error=' + encodeURIComponent('更新设置失败'));
     }
 });
 
