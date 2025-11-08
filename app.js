@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
 app.get('/health', async (req, res) => {
     console.log('DEBUG: Health check requested');
     console.log('DEBUG: Environment variables:');
-    console.log('  - vercel_DATABASE_URL:', process.env.vercel_DATABASE_URL ? 'SET' : 'NOT SET');
+    console.log('  - DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
     console.log('  - SESSION_SECRET:', process.env.SESSION_SECRET ? 'SET' : 'NOT SET');
     console.log('  - OBS_ACCESS_KEY_ID:', process.env.OBS_ACCESS_KEY_ID ? 'SET' : 'NOT SET');
     console.log('  - NODE_ENV:', process.env.NODE_ENV);

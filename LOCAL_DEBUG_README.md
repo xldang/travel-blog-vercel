@@ -21,10 +21,10 @@ cp .env.example .env
 # 数据库配置 - 选择其中一种方式：
 
 # 方式1: 使用本地 PostgreSQL
-vercel_DATABASE_URL="postgresql://username:password@localhost:5432/travel_blog"
+DATABASE_URL="postgresql://username:password@localhost:5432/travel_blog"
 
 # 方式2: 使用 Vercel Postgres (推荐)
-# 在Vercel中会自动设置 vercel_DATABASE_URL 环境变量
+# 在Vercel中会自动设置 DATABASE_URL 环境变量
 
 # 华为云OBS配置 (已配置好)
 OBS_ENDPOINT="obs.cn-north-4.myhuaweicloud.com"

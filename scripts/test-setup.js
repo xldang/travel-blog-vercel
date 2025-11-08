@@ -75,7 +75,7 @@ async function testEnvironment() {
   const issues = [];
 
   // 检查必需的环境变量
-  const requiredVars = ['vercel_DATABASE_URL'];
+  const requiredVars = ['DATABASE_URL'];
   const optionalVars = ['SESSION_SECRET', 'NODE_ENV', 'PORT'];
 
   requiredVars.forEach(varName => {
