@@ -24,12 +24,10 @@ const isAuthenticatedPage = async (req, res, next) => {
       res.locals.user = user;
       return next();
     }
-    req.flash('error_msg', '请先登录');
-    res.redirect('/login');
+    res.redirect('/login?error=' + encodeURIComponent('请先登录'));
   } catch (error) {
     console.error('Authentication middleware error:', error);
-    req.flash('error_msg', '认证失败');
-    res.redirect('/login');
+    res.redirect('/login?error=' + encodeURIComponent('认证失败'));
   }
 };
 
@@ -42,12 +40,10 @@ const isAdmin = async (req, res, next) => {
       res.locals.user = user;
       return next();
     }
-    req.flash('error_msg', '需要管理员权限');
-    res.redirect('/login');
+    res.redirect('/login?error=' + encodeURIComponent('需要管理员权限'));
   } catch (error) {
     console.error('Admin middleware error:', error);
-    req.flash('error_msg', '权限验证失败');
-    res.redirect('/login');
+    res.redirect('/login?error=' + encodeURIComponent('权限验证失败'));
   }
 };
 
