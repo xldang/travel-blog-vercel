@@ -5,6 +5,9 @@ const methodOverride = require('method-override');
 const session = require('express-session');
 const flash = require('connect-flash');
 
+// 加载环境变量
+require('dotenv').config();
+
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const travelRoutes = require('./routes/travels');
