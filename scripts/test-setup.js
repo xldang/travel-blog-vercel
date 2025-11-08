@@ -212,9 +212,9 @@ async function updateDatabaseImagePaths() {
     console.log(`找到 ${travels.length} 个游记有封面图片`);
 
     for (const travel of travels) {
-      if (travel.coverImage && !travel.coverImage.includes('/')) {
-        // 如果路径不包含斜杠，说明是旧格式，需要添加uploads/前缀
-        const newPath = `uploads/${travel.coverImage}`;
+      if (travel.coverImage && travel.coverImage.includes('uploads/')) {
+        // 如果路径包含uploads/前缀，需要移除
+        const newPath = travel.coverImage.replace('uploads/', '');
 
         await prisma.travel.update({
           where: { id: travel.id },
@@ -241,8 +241,8 @@ async function updateDatabaseImagePaths() {
         try {
           const images = JSON.parse(itinerary.images);
           const updatedImages = images.map(img => {
-            if (img && !img.includes('/')) {
-              return `uploads/${img}`;
+            if (img && img.includes('uploads/')) {
+              return img.replace('uploads/', '');
             }
             return img;
           });
