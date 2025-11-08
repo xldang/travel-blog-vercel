@@ -2,8 +2,7 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const session = require('express-session');
-const flash = require('connect-flash');
+const cookieParser = require('cookie-parser');
 
 // 加载环境变量
 require('dotenv').config();
@@ -27,31 +26,31 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(methodOverride('_method'));
-
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'travel-blog-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production', // 在生产环境中使用secure cookie
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        httpOnly: true,
-        sameSite: 'lax' // 允许跨站点请求
-    }
-}));
-app.use(flash());
+app.use(cookieParser()); // 解析cookie
 
 // 设置默认网站标题
 app.locals.websiteTitle = "DZ's Travel Story";
 
+// JWT token解析中间件 - 从cookie中获取token并设置到Authorization头
 app.use((req, res, next) => {
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
-    res.locals.user = req.session.userId ? {
-        id: req.session.userId,
-        username: req.session.username,
-        role: req.session.role
-    } : null;
+  const token = req.cookies.auth_token;
+  if (token && !req.headers.authorization) {
+    req.headers.authorization = `Bearer ${token}`;
+  }
+  next();
+});
+
+// 设置用户信息的中间件
+app.use(async (req, res, next) => {
+    // 尝试从JWT token获取用户信息
+    try {
+      const { authenticateUser } = require('./utils/jwt');
+      const user = await authenticateUser(req);
+      res.locals.user = user;
+    } catch (error) {
+      res.locals.user = null;
+    }
+
     next();
 });
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注册 - DZ's Travel Story</title>
+    <title>注册 - <%= websiteTitle %></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
@@ -12,11 +12,14 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">
-                <i class="fas fa-mountain-sun me-2"></i>DZ's Travel Story
+                <i class="fas fa-mountain-sun me-2"></i><%= websiteTitle %>
             </a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                     <a class="nav-link" href="/travels">所有游记</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">登录</a>
                 </li>
             </ul>
         </div>
@@ -24,24 +27,24 @@
 
     <main class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-5">
                 <div class="card shadow">
                     <div class="card-header bg-gradient-primary text-white text-center">
                         <h4 class="mb-0">
-                            <i class="fas fa-user-plus me-2"></i>注册用户账号
+                            <i class="fas fa-user-plus me-2"></i>用户注册
                         </h4>
                     </div>
                     <div class="card-body p-4">
-                        <% if (success_msg && success_msg.length > 0) { %>
+                        <% if (typeof success !== 'undefined' && success) { %>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <%= success_msg %>
+                                <%= success %>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <% } %>
-                        
-                        <% if (error_msg && error_msg.length > 0) { %>
+
+                        <% if (typeof error !== 'undefined' && error) { %>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <%= error_msg %>
+                                <%= error %>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <% } %>
@@ -53,12 +56,16 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-user"></i>
                                     </span>
-                                    <input type="text" class="form-control" id="username" name="username" required>
+                                    <input type="text" class="form-control" id="username" name="username"
+                                           required minlength="3" maxlength="50"
+                                           pattern="[a-zA-Z0-9_]+"
+                                           title="用户名只能包含字母、数字和下划线">
                                 </div>
+                                <div class="form-text">用户名只能包含字母、数字和下划线，长度3-50位</div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="email" class="form-label">邮箱</label>
+                                <label for="email" class="form-label">邮箱地址</label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="fas fa-envelope"></i>
@@ -73,8 +80,12 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-lock"></i>
                                     </span>
-                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                           required minlength="8"
+                                           pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
+                                           title="密码必须包含大小写字母和数字，至少8位">
                                 </div>
+                                <div class="form-text">密码必须包含大小写字母和数字，至少8位</div>
                             </div>
 
                             <div class="mb-3">
@@ -93,7 +104,7 @@
                         </form>
 
                         <div class="text-center mt-3">
-                            <a href="/login" class="text-decoration-none">已有账号？立即登录</a>
+                            <p class="mb-0">已有账号？<a href="/login" class="text-decoration-none">立即登录</a></p>
                         </div>
                     </div>
                 </div>
@@ -103,10 +114,38 @@
 
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container text-center">
-            <p class="mb-0">&copy; 2024 DZ's Travel Story - fallincloud.com 版权所有</p>
+            <p class="mb-0">&copy; <%= new Date().getFullYear() %> <%= websiteTitle %> - fallincloud.com 版权所有</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 密码确认验证
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+
+            if (password !== confirmPassword) {
+                this.setCustomValidity('密码不匹配');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // 密码强度实时验证
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const confirmPassword = document.getElementById('confirmPassword');
+
+            // 重新验证确认密码
+            if (confirmPassword.value) {
+                if (password !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('密码不匹配');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

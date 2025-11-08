@@ -32,16 +32,16 @@
                         </h4>
                     </div>
                     <div class="card-body p-4">
-                        <% if (success_msg && success_msg.length > 0) { %>
+                        <% if (typeof success !== 'undefined' && success) { %>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <%= success_msg %>
+                                <%= success %>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <% } %>
-                        
-                        <% if (error_msg && error_msg.length > 0) { %>
+
+                        <% if (typeof error !== 'undefined' && error) { %>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <%= error_msg %>
+                                <%= error %>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <% } %>
@@ -73,7 +73,7 @@
                         </form>
 
                         <div class="text-center mt-3">
-                            
+                            <p class="mb-0">还没有账号？<a href="/register" class="text-decoration-none">立即注册</a></p>
                         </div>
                     </div>
                 </div>

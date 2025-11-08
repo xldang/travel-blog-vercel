@@ -59,7 +59,11 @@ router.get('/travels', async (req, res) => {
     });
 
     console.log('DEBUG: Rendering travels/index template');
-    res.render('travels/index', { travels });
+    res.render('travels/index', {
+      travels,
+      success: req.query.success,
+      error: req.query.error
+    });
     console.log('DEBUG: Template rendered successfully');
   } catch (error) {
     console.error('ERROR: 获取游记列表失败:', error);
@@ -125,12 +129,10 @@ router.post('/travels', upload.single('coverImage'), async (req, res) => {
       data: travelData
     });
 
-    req.flash('success_msg', '游记创建成功');
-    res.redirect('/travels');
+    res.redirect('/travels?success=' + encodeURIComponent('游记创建成功'));
   } catch (error) {
     console.error('创建游记失败:', error);
-    req.flash('error_msg', '创建游记失败');
-    res.redirect('/travels/new');
+    res.redirect('/travels/new?error=' + encodeURIComponent('创建游记失败'));
   }
 });
 
