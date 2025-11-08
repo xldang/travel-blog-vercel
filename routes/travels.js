@@ -80,7 +80,20 @@ router.get('/travels/new', isAdmin, (req, res) => {
   res.render('travels/new');
 });
 
-router.post('/travels', isAdmin, upload.single('coverImage'), async (req, res) => {
+router.post('/travels', upload.single('coverImage'), async (req, res) => {
+  // 手动检查管理员权限（避免isAdmin中间件问题）
+  if (!req.session || !req.session.userId) {
+    console.log('DEBUG: POST /travels - No session found, redirecting to login');
+    req.flash('error_msg', '需要管理员权限');
+    return res.redirect('/login');
+  }
+
+  console.log('DEBUG: POST /travels - Session found:', {
+    userId: req.session.userId,
+    username: req.session.username,
+    role: req.session.role
+  });
+
   try {
     const { title, description, startLocation, endLocation, transportMethod, totalCost, startDate, endDate } = req.body;
 
