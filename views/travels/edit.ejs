@@ -32,16 +32,16 @@
     </nav>
 
     <main class="container py-5" style="margin-top: 80px;">
-        <% if (success_msg && success_msg.length > 0) { %>
+        <% if (typeof success !== 'undefined' && success) { %>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <%= success_msg %>
+                <%= success %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <% } %>
-        
-        <% if (error_msg && error_msg.length > 0) { %>
+
+        <% if (typeof error !== 'undefined' && error) { %>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <%= error_msg %>
+                <%= error %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <% } %>

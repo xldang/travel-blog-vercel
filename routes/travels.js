@@ -81,7 +81,10 @@ router.get('/travels', async (req, res) => {
 });
 
 router.get('/travels/new', isAdmin, (req, res) => {
-  res.render('travels/new');
+  res.render('travels/new', {
+    success: req.query.success,
+    error: req.query.error
+  });
 });
 
 router.post('/travels', isAdmin, upload.single('coverImage'), async (req, res) => {
@@ -192,7 +195,11 @@ router.get('/travels/:id', async (req, res) => {
       });
     }
 
-    res.render('travels/show', { travel });
+    res.render('travels/show', {
+      travel,
+      success: req.query.success,
+      error: req.query.error
+    });
   } catch (error) {
     console.error('获取游记详情失败:', error);
     res.redirect('/travels?error=' + encodeURIComponent('获取游记详情失败'));
@@ -216,7 +223,11 @@ router.get('/travels/:id/edit', isAdmin, async (req, res) => {
       travel.coverImage = convertToObsUrl(travel.coverImage);
     }
 
-    res.render('travels/edit', { travel });
+    res.render('travels/edit', {
+      travel,
+      success: req.query.success,
+      error: req.query.error
+    });
   } catch (error) {
     console.error('获取游记失败:', error);
     res.redirect('/travels?error=' + encodeURIComponent('获取游记失败'));
