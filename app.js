@@ -33,6 +33,9 @@ app.use(session({
 }));
 app.use(flash());
 
+// 设置默认网站标题
+app.locals.websiteTitle = "DZ's Travel Story";
+
 app.use((req, res, next) => {
     res.locals.success_msg = req.flash('success_msg');
     res.locals.error_msg = req.flash('error_msg');
