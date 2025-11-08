@@ -84,18 +84,11 @@ router.get('/travels/new', isAdmin, (req, res) => {
   res.render('travels/new');
 });
 
-router.post('/travels', upload.single('coverImage'), async (req, res) => {
-  // 手动检查管理员权限（避免isAdmin中间件问题）
-  if (!req.session || !req.session.userId) {
-    console.log('DEBUG: POST /travels - No session found, redirecting to login');
-    req.flash('error_msg', '需要管理员权限');
-    return res.redirect('/login');
-  }
-
-  console.log('DEBUG: POST /travels - Session found:', {
-    userId: req.session.userId,
-    username: req.session.username,
-    role: req.session.role
+router.post('/travels', isAdmin, upload.single('coverImage'), async (req, res) => {
+  console.log('DEBUG: POST /travels - Admin user:', {
+    userId: req.user.id,
+    username: req.user.username,
+    role: req.user.role
   });
 
   try {
@@ -148,8 +141,7 @@ router.get('/travels/:id', async (req, res) => {
     });
 
     if (!travel) {
-      req.flash('error_msg', '游记不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('游记不存在'));
     }
 
     // 转换图片URL为OBS URL
@@ -203,8 +195,7 @@ router.get('/travels/:id', async (req, res) => {
     res.render('travels/show', { travel });
   } catch (error) {
     console.error('获取游记详情失败:', error);
-    req.flash('error_msg', '获取游记详情失败: ' + error.message);
-    res.redirect('/travels');
+    res.redirect('/travels?error=' + encodeURIComponent('获取游记详情失败'));
   }
 });
 
@@ -217,8 +208,7 @@ router.get('/travels/:id/edit', isAdmin, async (req, res) => {
     });
 
     if (!travel) {
-      req.flash('error_msg', '游记不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('游记不存在'));
     }
 
     // 转换图片URL为OBS URL用于显示
@@ -229,8 +219,7 @@ router.get('/travels/:id/edit', isAdmin, async (req, res) => {
     res.render('travels/edit', { travel });
   } catch (error) {
     console.error('获取游记失败:', error);
-    req.flash('error_msg', '获取游记失败: ' + error.message);
-    res.redirect('/travels');
+    res.redirect('/travels?error=' + encodeURIComponent('获取游记失败'));
   }
 });
 
@@ -244,8 +233,7 @@ router.put('/travels/:id', isAdmin, upload.single('coverImage'), async (req, res
     });
 
     if (!existingTravel) {
-      req.flash('error_msg', '游记不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('游记不存在'));
     }
 
     let coverImageUrl = existingTravel.coverImage;
@@ -277,12 +265,10 @@ router.put('/travels/:id', isAdmin, upload.single('coverImage'), async (req, res
       data: travelData
     });
 
-    req.flash('success_msg', '游记更新成功');
-    res.redirect(`/travels/${req.params.id}`);
+    res.redirect(`/travels/${req.params.id}?success=` + encodeURIComponent('游记更新成功'));
   } catch (error) {
     console.error('更新游记失败:', error);
-    req.flash('error_msg', '更新游记失败: ' + error.message);
-    res.redirect(`/travels/${req.params.id}/edit`);
+    res.redirect(`/travels/${req.params.id}/edit?error=` + encodeURIComponent('更新游记失败'));
   }
 });
 
@@ -295,8 +281,7 @@ router.delete('/travels/:id', isAdmin, async (req, res) => {
     });
 
     if (!travel) {
-      req.flash('error_msg', '游记不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('游记不存在'));
     }
 
     // 删除相关的行程（级联删除会自动处理）
@@ -304,12 +289,10 @@ router.delete('/travels/:id', isAdmin, async (req, res) => {
       where: { id: travelId }
     });
 
-    req.flash('success_msg', '游记删除成功');
-    res.redirect('/travels');
+    res.redirect('/travels?success=' + encodeURIComponent('游记删除成功'));
   } catch (error) {
     console.error('删除游记失败:', error);
-    req.flash('error_msg', '删除游记失败');
-    res.redirect('/travels');
+    res.redirect('/travels?error=' + encodeURIComponent('删除游记失败'));
   }
 });
 
