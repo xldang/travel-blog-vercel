@@ -258,19 +258,43 @@ router.get('/new', isAdmin, async (req, res) => {
 
 // 图片上传端点 - 重构为OBS上传
 router.post('/upload-image', isAdmin, upload.single('image'), async (req, res) => {
+  console.log('DEBUG: 图片上传请求开始处理');
   try {
     if (!req.file) {
+      console.log('DEBUG: 没有选择图片文件');
       return res.json({ success: false, error: '没有选择图片文件' });
     }
 
+    console.log('DEBUG: 图片文件信息:', {
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+
     // 直接使用内存中的文件缓冲区上传到OBS
     const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
+    console.log('DEBUG: 开始上传到OBS, 文件名:', fileName);
+
     const obsUrl = await uploadToObs(req.file.buffer, fileName, req.file.mimetype);
+    console.log('DEBUG: OBS上传成功, URL:', obsUrl);
 
     res.json({ success: true, url: obsUrl });
   } catch (error) {
-    console.error('图片上传错误:', error);
-    res.json({ success: false, error: '图片上传失败' });
+    console.error('ERROR: 图片上传失败:', error);
+    console.error('ERROR: 错误详情:', {
+      message: error.message,
+      stack: error.stack
+    });
+
+    // 返回更详细的错误信息
+    let errorMessage = '图片上传失败';
+    if (error.message.includes('timeout')) {
+      errorMessage = '图片上传超时，请检查网络连接';
+    } else if (error.message.includes('OBS upload failed')) {
+      errorMessage = 'OBS存储服务错误，请稍后重试';
+    }
+
+    res.json({ success: false, error: errorMessage });
   }
 });
 

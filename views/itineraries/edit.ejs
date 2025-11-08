@@ -212,6 +212,9 @@
                     </div>
                     <div id="editor" class="quill-editor"></div>
                     <input type="hidden" name="content" id="content">
+                    <% if (itinerary && itinerary.content) { %>
+                        <div id="initial-content" style="display: none;"><%- itinerary.content %></div>
+                    <% } %>
                 </div>
 
                 <div class="text-center mt-5">
@@ -247,16 +250,14 @@
 
         // 设置初始内容 - 等待Quill完全初始化
         setTimeout(() => {
-            <% if (itinerary && itinerary.content) { %>
+            const initialContentDiv = document.getElementById('initial-content');
+            if (initialContentDiv) {
                 try {
-                    const content = <%- JSON.stringify(itinerary.content || '') %>;
-                    if (content) {
-                        quill.root.innerHTML = content;
-                    }
+                    quill.root.innerHTML = initialContentDiv.innerHTML;
                 } catch (e) {
                     console.error('内容加载错误:', e);
                 }
-            <% } %>
+            }
         }, 100);
 
         // 表单提交处理
@@ -361,6 +362,7 @@
 
             // 显示上传进度
             const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'upload-loading-' + Date.now();
             loadingIndicator.innerHTML = '<div style="padding: 10px; background: #f0f0f0; border-radius: 4px; margin: 10px 0;">正在上传图片...</div>';
             quill.container.appendChild(loadingIndicator);
 
@@ -368,20 +370,35 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                quill.container.removeChild(loadingIndicator);
+                // 确保移除loading指示器
+                const indicator = document.getElementById(loadingIndicator.id);
+                if (indicator && indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+
                 if (data.success) {
                     const range = quill.getSelection();
                     quill.insertEmbed(range.index, 'image', data.url);
                 } else {
-                    alert('图片上传失败: ' + data.error);
+                    alert('图片上传失败: ' + (data.error || '未知错误'));
                 }
             })
             .catch(error => {
-                quill.container.removeChild(loadingIndicator);
-                console.error('Error:', error);
-                alert('图片上传失败，请检查网络连接或图片大小');
+                // 确保移除loading指示器
+                const indicator = document.getElementById(loadingIndicator.id);
+                if (indicator && indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+
+                console.error('图片上传错误:', error);
+                alert('图片上传失败: ' + error.message);
             });
         }
 
