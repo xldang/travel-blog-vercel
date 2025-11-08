@@ -38,26 +38,22 @@ router.post('/', isAdmin, async (req, res) => {
 
     if (!travelId) {
       console.error('缺少travelId参数');
-      req.flash('error_msg', '参数错误：缺少游记ID');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('参数错误：缺少游记ID'));
     }
 
     if (!title || !title.trim()) {
       console.error('缺少标题参数');
-      req.flash('error_msg', '标题不能为空');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('标题不能为空'));
     }
 
     if (!startDateTime) {
       console.error('缺少开始时间');
-      req.flash('error_msg', '请选择行程开始时间');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('请选择行程开始时间'));
     }
 
     if (!transportMethod) {
       console.error('缺少出行方式');
-      req.flash('error_msg', '请选择出行方式');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('请选择出行方式'));
     }
 
     const travel = await prisma.travel.findUnique({
@@ -66,8 +62,7 @@ router.post('/', isAdmin, async (req, res) => {
 
     if (!travel) {
       console.error('游记不存在:', travelId);
-      req.flash('error_msg', '游记不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('游记不存在'));
     }
 
     // Parse datetime-local format and store datetime values
@@ -104,13 +99,11 @@ router.post('/', isAdmin, async (req, res) => {
       data: itineraryData
     });
 
-    req.flash('success_msg', '行程添加成功');
-    res.redirect(`/travels/${travelId}`);
+    res.redirect(`/travels/${travelId}?success=` + encodeURIComponent('行程添加成功'));
   } catch (error) {
     console.error('添加行程错误:', error);
     console.error('表单数据:', req.body);
-    req.flash('error_msg', `添加行程失败: ${error.message}`);
-    res.redirect(`/travels/${req.body.travelId || travelId}`);
+    res.redirect(`/travels/${req.body.travelId || travelId}?error=` + encodeURIComponent(`添加行程失败: ${error.message}`));
   }
 });
 
@@ -122,8 +115,7 @@ router.get('/:id/edit', isAdmin, async (req, res) => {
     });
 
     if (!itinerary) {
-      req.flash('error_msg', '行程不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('行程不存在'));
     }
 
     // Helper function to format date for datetime-local input
@@ -155,8 +147,7 @@ router.get('/:id/edit', isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('编辑行程错误:', error);
-    req.flash('error_msg', '获取行程失败');
-    res.redirect('/travels');
+    res.redirect('/travels?error=' + encodeURIComponent('获取行程失败'));
   }
 });
 
@@ -165,18 +156,15 @@ router.put('/:id', isAdmin, async (req, res) => {
     const { title, content, startDateTime, endDateTime, cost, transportMethod } = req.body;
 
     if (!title || !title.trim()) {
-      req.flash('error_msg', '标题不能为空');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('标题不能为空'));
     }
 
     if (!startDateTime) {
-      req.flash('error_msg', '请选择行程开始时间');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('请选择行程开始时间'));
     }
 
     if (!transportMethod) {
-      req.flash('error_msg', '请选择出行方式');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('请选择出行方式'));
     }
 
     const itineraryId = parseInt(req.params.id);
@@ -185,8 +173,7 @@ router.put('/:id', isAdmin, async (req, res) => {
     });
 
     if (!existingItinerary) {
-      req.flash('error_msg', '行程不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('行程不存在'));
     }
 
     // Parse datetime-local format and store datetime values
@@ -222,13 +209,11 @@ router.put('/:id', isAdmin, async (req, res) => {
       data: itineraryData
     });
 
-    req.flash('success_msg', '行程更新成功');
-    res.redirect(`/travels/${existingItinerary.travelId}`);
+    res.redirect(`/travels/${existingItinerary.travelId}?success=` + encodeURIComponent('行程更新成功'));
   } catch (error) {
     console.error('更新行程错误:', error);
     console.error('表单数据:', req.body);
-    req.flash('error_msg', `更新行程失败: ${error.message}`);
-    res.redirect(`/itineraries/${req.params.id}/edit`);
+    res.redirect(`/itineraries/${req.params.id}/edit?error=` + encodeURIComponent(`更新行程失败: ${error.message}`));
   }
 });
 
@@ -240,8 +225,7 @@ router.delete('/:id', isAdmin, async (req, res) => {
     });
 
     if (!itinerary) {
-      req.flash('error_msg', '行程不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('行程不存在'));
     }
 
     const travelId = itinerary.travelId;
@@ -249,11 +233,9 @@ router.delete('/:id', isAdmin, async (req, res) => {
       where: { id: itineraryId }
     });
 
-    req.flash('success_msg', '行程删除成功');
-    res.redirect(`/travels/${travelId}`);
+    res.redirect(`/travels/${travelId}?success=` + encodeURIComponent('行程删除成功'));
   } catch (error) {
-    req.flash('error_msg', '删除行程失败');
-    res.redirect('/travels');
+    res.redirect('/travels?error=' + encodeURIComponent('删除行程失败'));
   }
 });
 
@@ -263,8 +245,7 @@ router.get('/new', isAdmin, async (req, res) => {
     const { travelId } = req.query;
 
     if (!travelId) {
-      req.flash('error_msg', '缺少游记ID');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('缺少游记ID'));
     }
 
     const travel = await prisma.travel.findUnique({
@@ -272,15 +253,13 @@ router.get('/new', isAdmin, async (req, res) => {
     });
 
     if (!travel) {
-      req.flash('error_msg', '游记不存在');
-      return res.redirect('/travels');
+      return res.redirect('/travels?error=' + encodeURIComponent('游记不存在'));
     }
 
     res.render('itineraries/new', { travel });
   } catch (error) {
     console.error('获取新建行程页面错误:', error);
-    req.flash('error_msg', '获取页面失败');
-    res.redirect('/travels');
+    res.redirect('/travels?error=' + encodeURIComponent('获取页面失败'));
   }
 });
 
