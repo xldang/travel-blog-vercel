@@ -193,6 +193,84 @@ async function uploadImagesToOBS() {
   }
 }
 
+async function updateDatabaseImagePaths() {
+  console.log('🔄 开始更新数据库中的图片路径...');
+
+  const { PrismaClient } = require('@prisma/client');
+  const prisma = new PrismaClient();
+
+  try {
+    // 更新travels表中的coverImage
+    const travels = await prisma.travel.findMany({
+      where: {
+        coverImage: {
+          not: null
+        }
+      }
+    });
+
+    console.log(`找到 ${travels.length} 个游记有封面图片`);
+
+    for (const travel of travels) {
+      if (travel.coverImage && !travel.coverImage.includes('/')) {
+        // 如果路径不包含斜杠，说明是旧格式，需要添加uploads/前缀
+        const newPath = `uploads/${travel.coverImage}`;
+
+        await prisma.travel.update({
+          where: { id: travel.id },
+          data: { coverImage: newPath }
+        });
+
+        console.log(`✅ 更新游记 ${travel.id} 封面: ${travel.coverImage} -> ${newPath}`);
+      }
+    }
+
+    // 更新itineraries表中的images
+    const itineraries = await prisma.itinerary.findMany({
+      where: {
+        images: {
+          not: null
+        }
+      }
+    });
+
+    console.log(`找到 ${itineraries.length} 个行程有图片`);
+
+    for (const itinerary of itineraries) {
+      if (itinerary.images) {
+        try {
+          const images = JSON.parse(itinerary.images);
+          const updatedImages = images.map(img => {
+            if (img && !img.includes('/')) {
+              return `uploads/${img}`;
+            }
+            return img;
+          });
+
+          if (JSON.stringify(updatedImages) !== itinerary.images) {
+            await prisma.itinerary.update({
+              where: { id: itinerary.id },
+              data: { images: JSON.stringify(updatedImages) }
+            });
+
+            console.log(`✅ 更新行程 ${itinerary.id} 图片路径`);
+          }
+        } catch (error) {
+          console.error(`❌ 解析行程 ${itinerary.id} 图片数据失败:`, error.message);
+        }
+      }
+    }
+
+    console.log('✅ 数据库图片路径更新完成');
+    return true;
+  } catch (error) {
+    console.error('❌ 更新数据库图片路径失败:', error.message);
+    return false;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 async function main() {
   console.log('🚀 开始本地环境测试...\n');
 
@@ -228,4 +306,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = { testDatabase, testOBS, testEnvironment, checkImagePaths, uploadImagesToOBS };
+module.exports = { testDatabase, testOBS, testEnvironment, checkImagePaths, uploadImagesToOBS, updateDatabaseImagePaths };
