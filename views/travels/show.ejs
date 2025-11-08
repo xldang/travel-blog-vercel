@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= travel.title %> - <%= websiteTitle %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    
+    <style>
+        .rich-editor {
+            min-height: 300px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+        }
+        .ql-editor {
+            min-height: 250px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .ql-toolbar {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .ql-container {
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            border-top: none;
+        }
+        .dropdown-toggle::after {
+            display: none;
+        }
+        .btn-sm.btn-outline-secondary.border-0 {
+            padding: 0.25rem 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-sm.btn-outline-secondary.border-0:hover {
+            background-color: rgba(0,0,0,0.05);
+            transform: scale(1.1);
+        }
+        .dropdown-item {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        .dropdown-menu {
+            min-width: 160px;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        /* 优化下拉菜单样式 */
+        .dropdown-menu.shadow-sm {
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+            border: none;
+            padding: 0.25rem 0;
+        }
+        .dropdown-item:hover {
+            background-color: rgba(0,123,255,.1);
+            color: #0d6efd;
+        }
+        .dropdown-item.text-danger:hover {
+            background-color: rgba(220,53,69,.1);
+            color: #dc3545;
+        }
+        /* 优化行程卡片响应式布局 */
+        .itinerary-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .itinerary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,.1);
+        }
+        /* 响应式间距调整 */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1140px;
+            }
+        }
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 1200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-lg">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+                <i class="fas fa-mountain-sun me-2"></i>
+                <span><%= websiteTitle %></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="/travels">
+                            <i class="fas fa-map-marked-alt me-1"></i>所有游记
+                        </a>
+                    </li>
+                    <% if (user && user.role === 'admin') { %>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium" href="/travels/new">
+                                <i class="fas fa-plus-circle me-1"></i>新建游記
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+                <ul class="navbar-nav">
+                    <% if (!user) { %>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light px-3 py-1 my-1" href="/login">
+                                <i class="fas fa-sign-in-alt me-1"></i>登录
+                            </a>
+                        </li>
+                    <% } %>
+                    <% if (user) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="d-flex align-items-center">
+                                    <% if (user.role === 'admin') { %>
+                                        <i class="fas fa-user-shield me-2 text-warning"></i>
+                                        <span class="fw-bold text-warning"><%= user.username %></span>
+                                        <span class="badge bg-warning text-dark ms-2">管理员</span>
+                                    <% } else { %>
+                                        <i class="fas fa-user me-2"></i>
+                                        <span><%= user.username %></span>
+                                    <% } %>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li>
+                                    <div class="dropdown-item-text">
+                                        <small class="text-muted">已登录为</small><br>
+                                        <strong><%= user.username %></strong>
+                                        <% if (user.role === 'admin') { %>
+                                            <br><small class="text-warning">管理员权限</small>
+                                        <% } %>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="/settings">
+                                        <i class="fas fa-cog me-2"></i>设置
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/change-password">
+                                        <i class="fas fa-key me-2"></i>更改密码
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="/logout">
+                                        <i class="fas fa-sign-out-alt me-2"></i>安全登出
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5" style="margin-top: 80px;">
+        <% if (success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= success_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+        
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= error_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="travel-header mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h1 class="h2 mb-0" style="font-weight: 600; color: #1a1a1a;"><%= travel.title %></h1>
+                    </div>
+                    
+                    <% if (travel.description) { %>
+                        <p class="text-muted mb-4" style="font-size: 1.1rem;"><%= travel.description %></p>
+                    <% } %>
+                    
+                    <div class="travel-meta d-flex flex-wrap align-items-center gap-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="far fa-calendar text-primary me-2" style="color: #0d6efd;"></i>
+                            <span class="fw-medium" style="color: #495057;">
+                                <%= travel.startDate ? new Date(travel.startDate).toLocaleDateString('zh-CN') : '日期未设置' %>
+                                <% if (travel.endDate && travel.startDate) { %>
+                                    <span class="text-muted">→</span> <%= new Date(travel.endDate).toLocaleDateString('zh-CN') %>
+                                <% } %>
+                            </span>
+                        </div>
+                        
+                        <% if (travel.startLocation || travel.endLocation) { %>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt text-success me-2" style="color: #198754;"></i>
+                                <span class="fw-medium" style="color: #495057;">
+                                    <%= travel.startLocation || '' %>
+                                    <% if (travel.startLocation && travel.endLocation) { %>
+                                        <span class="text-muted">→</span>
+                                    <% } %>
+                                    <%= travel.endLocation || '' %>
+                                </span>
+                            </div>
+                        <% } %>
+                        
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-coins text-warning me-2" style="color: #fd7e14;"></i>
+                            <span class="fw-medium" style="color: #495057;">¥<span id="totalCostDisplay">0.00</span></span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-route text-info me-2" style="color: #0dcaf0;"></i>
+                            <span class="fw-medium" style="color: #495057;"><%= travel.Itineraries ? travel.Itineraries.length : 0 %> 个行程</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <!-- 添加行程按钮已移至导航栏 -->
+
+<% if (travel.Itineraries && travel.Itineraries.length > 0) { %>
+                    <div class="itinerary-list">
+                        <% travel.Itineraries.forEach((itinerary, index) => { %>
+                            <div class="itinerary-item">
+                                <div class="card itinerary-card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <h5 class="itinerary-title"><%= itinerary.title %></h5>
+                                                        <span class="itinerary-date-badge">
+                                                            <i class="fas fa-calendar-alt me-1"></i>
+                                                            <%= itinerary.travelDate ? new Date(itinerary.travelDate).toLocaleDateString('zh-CN') : '日期未设置' %>
+                                                            <% if (itinerary.startTime) { %>
+                                                                <%= itinerary.startTime %>
+                                                            <% } %>
+                                                        </span>
+                                                    </div>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-outline-secondary border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="fas fa-ellipsis-v"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width: 140px; padding: 0.25rem 0;">
+                                                            <li>
+                                                                <a class="dropdown-item py-2 px-3" href="/itineraries/<%= itinerary.id %>/edit" style="font-size: 0.875rem;">
+                                                                    <i class="fas fa-edit me-2 text-primary"></i>编辑行程
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <form action="/itineraries/<%= itinerary.id %>?_method=DELETE" method="POST" 
+                                                                      class="d-inline" onsubmit="return confirm('确定要删除这个行程吗？');">
+                                                                    <button type="submit" class="dropdown-item text-danger py-2 px-3" style="font-size: 0.875rem;">
+                                                                        <i class="fas fa-trash me-2"></i>删除行程
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-2">
+                                                    <div class="countdown-timer" data-start-datetime="<%= itinerary.travelDate ? (new Date(itinerary.travelDate).toISOString().slice(0, 10) + 'T' + (itinerary.startTime ? itinerary.startTime.substring(0, 5) : '00:00')) : '' %>" data-transport="<%= itinerary.transportMethod || '步行游览' %>">
+                                                        <span class="countdown-text"></span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="itinerary-info-compact">
+                                                    <!-- 费用 -->
+                                                    <div class="itinerary-info-row">
+                                                        <i class="fas fa-coins text-warning"></i>
+                                                        <span class="info-label">费用：</span>
+                                                        <span class="info-value">
+                                                            <% if (itinerary.cost) { %>
+                                                                ¥<%= itinerary.cost %>
+                                                            <% } else { %>
+                                                                未设置
+                                                            <% } %>
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <!-- 出行方式 -->
+                                                    <div class="itinerary-info-row">
+                                                        <i class="fas fa-route text-info"></i>
+                                                        <span class="info-label">出行方式：</span>
+                                                        <span class="info-value">
+                                                            <%= itinerary.transportMethod || '未设置' %>
+                                                            <% if (itinerary.travelMethodInfo) { %>
+                                                                - <%= itinerary.travelMethodInfo %>
+                                                            <% } %>
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    
+                                                    <!-- 时间 -->
+                                                    <div class="itinerary-info-row">
+                                                        <i class="fas fa-clock text-success"></i>
+                                                        <span class="info-label">时间：</span>
+                                                        <span class="info-value">
+                                                            <% if (itinerary.startTime) { %>
+                                                                <%= itinerary.startTime %>
+                                                                <% if (itinerary.endTime) { %>
+                                                                     - <%= itinerary.endTime %>
+                                                                <% } %>
+                                                            <% } else { %>
+                                                                未设置
+                                                            <% } %>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <% if (itinerary.content) { %>
+                                                    <div class="itinerary-notes-section">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm toggle-notes-btn"
+                                                                data-itinerary-id="<%= itinerary.id %>"
+                                                                onclick="toggleNotes(this)">
+                                                            <i class="fas fa-eye me-1"></i>查看旅行笔记
+                                                        </button>
+                                                        <div class="itinerary-notes-content" id="notes-<%= itinerary.id %>" style="display: none;">
+                                                            <div class="itinerary-content">
+                                                                <%- itinerary.content %>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <% } %>
+                                                
+                                                <% if (itinerary.images) { %>
+                                                    <% const images = JSON.parse(itinerary.images); %>
+                                                    <% if (images.length > 0) { %>
+                                                        <div class="itinerary-images">
+                                                            <div class="row g-3">
+                                                                <% images.forEach(image => { %>
+                                                                    <div class="col-md-4 col-sm-6">
+                                                                        <img src="/uploads/<%= image %>" class="img-fluid itinerary-image" alt="行程图片" style="height: 180px; object-fit: cover;">
+                                                                    </div>
+                                                                <% }); %>
+                                                            </div>
+                                                        </div>
+                                                    <% } %>
+                                                <% } %>
+                                                
+                                            </div>
+                                        </div>
+                            <% }); %>
+                <% } else { %>
+                    <div class="text-center py-5">
+                        <i class="fas fa-route fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">暂无行程</h4>
+                        <p class="text-muted">点击上方按钮添加第一个行程吧！</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </main>
+
+    <!-- 添加行程模态框 -->
+    <div class="modal fade" id="addItineraryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加行程</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/itineraries" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="travelId" value="<%= travel.id %>">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">行程标题 *</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">行程开始日期时间 *</label>
+                            <input type="datetime-local" class="form-control" name="startDateTime" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">行程结束日期时间</label>
+                            <input type="datetime-local" class="form-control" name="endDateTime">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">费用 (¥)</label>
+                                <input type="number" class="form-control" name="cost" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">出行方式 *</label>
+                                <select class="form-select" name="transportMethod" required onchange="toggleAddTransportFields()">
+                                    <option value="">请选择出行方式</option>
+                                    <option value="火车">火车</option>
+                                    <option value="飞机">飞机</option>
+                                    <option value="自驾">自驾</option>
+                                    <option value="客车">客车</option>
+                                    <option value="步行游览">步行游览</option>
+                                    <option value="住宿">住宿</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 统一出行详情字段 -->
+                        <div id="addTransportFields">
+                            <div class="mb-3">
+                                <label class="form-label" id="addTravelMethodInfoLabel">出行详情</label>
+                                <input type="text" class="form-control" name="travelMethodInfo" 
+                                       placeholder="根据选择的出行方式填写相应信息">
+                            </div>
+                        </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">旅行笔记 *</label>
+                            <div id="addContentEditor" class="rich-editor"></div>
+                            <input type="hidden" id="addContent" name="content">
+                            <small class="text-muted">支持图文混排编辑，点击工具栏按钮插入图片、格式化文本</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存行程</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; <%= new Date().getFullYear() %> <%= websiteTitle %> - fallincloud.com 版权所有</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="/js/countdown.js"></script>
+    <script src="/js/navbar-scroll.js"></script>
+    <script>
+        // 计算总费用
+        function calculateTotalCost() {
+            let totalCost = 0;
+            <% if (travel.Itineraries && travel.Itineraries.length > 0) { %>
+                <% travel.Itineraries.forEach(itinerary => { %>
+                    <% if (itinerary.cost) { %>
+                        totalCost += parseFloat('<%= itinerary.cost %>') || 0;
+                    <% } %>
+                <% }); %>
+            <% } %>
+            
+            const formattedCost = totalCost.toFixed(2);
+            document.getElementById('totalCostDisplay').textContent = totalCost === 0 ? '未设置' : formattedCost;
+        }
+
+        // 动态字段切换功能
+        function toggleAddTransportFields() {
+            const transportMethod = document.querySelector('#addItineraryModal select[name="transportMethod"]').value;
+            const publicTransportFields = document.getElementById('addPublicTransportFields');
+            const walkingFields = document.getElementById('addWalkingFields');
+            const accommodationFields = document.getElementById('addAccommodationFields');
+            const transportNumber = document.querySelector('#addItineraryModal input[name="transportNumber"]');
+            const walkingLocation = document.querySelector('#addItineraryModal input[name="walkingLocation"]');
+            const accommodationLocation = document.querySelector('#addItineraryModal input[name="accommodationLocation"]');
+            const startLocationLabel = document.getElementById('addStartLocationLabel');
+            const endLocationLabel = document.getElementById('addEndLocationLabel');
+            const startLocationInput = document.querySelector('#addItineraryModal input[name="startLocation"]');
+            const endLocationInput = document.querySelector('#addItineraryModal input[name="endLocation"]');
+            const locationFields = document.getElementById('addLocationFields');
+
+            // Reset all fields
+            if (publicTransportFields) publicTransportFields.style.display = 'none';
+            if (walkingFields) walkingFields.style.display = 'none';
+            if (accommodationFields) accommodationFields.style.display = 'none';
+            if (transportNumber) transportNumber.removeAttribute('required');
+            if (walkingLocation) walkingLocation.removeAttribute('required');
+            if (accommodationLocation) accommodationLocation.removeAttribute('required');
+
+            // Show/hide fields based on transport method
+            if (transportMethod === '火车' || transportMethod === '飞机' || transportMethod === '客车') {
+                if (publicTransportFields) publicTransportFields.style.display = 'block';
+                if (transportNumber) transportNumber.setAttribute('required', 'required');
+                
+                // Hide start/end locations for train, flight, bus
+                if (locationFields) locationFields.style.display = 'none';
+                if (startLocationInput) startLocationInput.removeAttribute('required');
+                if (endLocationInput) endLocationInput.removeAttribute('required');
+            } else if (transportMethod === '自驾') {
+                // Hide start/end locations for self-drive
+                if (locationFields) locationFields.style.display = 'none';
+                if (startLocationInput) startLocationInput.removeAttribute('required');
+                if (endLocationInput) endLocationInput.removeAttribute('required');
+            } else if (transportMethod === '步行游览') {
+                if (walkingFields) walkingFields.style.display = 'block';
+                if (walkingLocation) walkingLocation.setAttribute('required', 'required');
+                
+                // Hide start/end locations for walking tours
+                if (locationFields) locationFields.style.display = 'none';
+                if (startLocationInput) startLocationInput.removeAttribute('required');
+                if (endLocationInput) endLocationInput.removeAttribute('required');
+            } else if (transportMethod === '住宿') {
+                if (accommodationFields) accommodationFields.style.display = 'block';
+                if (accommodationLocation) accommodationLocation.setAttribute('required', 'required');
+                
+                // Hide start/end locations for accommodation
+                if (locationFields) locationFields.style.display = 'none';
+                if (startLocationInput) startLocationInput.removeAttribute('required');
+                if (endLocationInput) endLocationInput.removeAttribute('required');
+            } else {
+                // Hide location fields when no transport method is selected (default value)
+                if (locationFields) locationFields.style.display = 'none';
+                if (startLocationInput) startLocationInput.removeAttribute('required');
+                if (endLocationInput) endLocationInput.removeAttribute('required');
+            }
+        }
+
+        // 处理表单提交
+        function handleAddItineraryForm() {
+            const form = document.querySelector('#addItineraryModal form');
+            form.addEventListener('submit', function(e) {
+                // Set Quill content to hidden input
+                try {
+                    if (window.addQuill) {
+                        document.getElementById('addContent').value = window.addQuill.root.innerHTML;
+                    }
+                } catch (e) {
+                    console.error('Error setting Quill content:', e);
+                    document.getElementById('addContent').value = '';
+                }
+            });
+        }
+        
+        // 页面加载完成后计算总费用和初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTotalCost();
+            
+            // 监听模态框显示事件
+            const modal = document.getElementById('addItineraryModal');
+            modal.addEventListener('shown.bs.modal', function() {
+                toggleAddTransportFields(); // 初始化动态字段
+                handleAddItineraryForm(); // 处理表单提交
+                
+                // Initialize Quill for add modal if not already initialized
+                if (!window.addQuill) {
+                    window.addQuill = new Quill('#addContentEditor', {
+                        theme: 'snow',
+                        placeholder: '描述你的行程体验...',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    
+                    // Add image handler for add modal
+                    window.addQuill.getModule('toolbar').addHandler('image', function() {
+                        const input = document.createElement('input');
+                        input.setAttribute('type', 'file');
+                        input.setAttribute('accept', 'image/*');
+                        input.setAttribute('multiple', true);
+                        input.onchange = function() {
+                            const files = input.files;
+                            if (files.length > 0) {
+                                Array.from(files).forEach(file => {
+                                    const formData = new FormData();
+                                    formData.append('image', file);
+                                    
+                                    fetch('/itineraries/upload-image', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            const range = window.addQuill.getSelection();
+                                            window.addQuill.insertEmbed(range.index, 'image', data.url);
+                                        } else {
+                                            alert('图片上传失败: ' + data.error);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('图片上传失败');
+                                    });
+                                });
+                            }
+                        };
+                        input.click();
+                    });
+                }
+            });
+            
+            // 监听出行方式变化
+            const transportSelect = document.querySelector('#addItineraryModal select[name="transportMethod"]');
+            if (transportSelect) {
+                transportSelect.addEventListener('change', toggleAddTransportFields);
+            }
+        });
+
+        // 行程笔记展开收起功能
+        function toggleNotes(button) {
+            const itineraryId = button.getAttribute('data-itinerary-id');
+            const targetId = 'notes-' + itineraryId;
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                const isHidden = targetElement.style.display === 'none' || targetElement.style.display === '';
+                
+                if (isHidden) {
+                    // 展开
+                    targetElement.style.display = 'block';
+                    targetElement.style.maxHeight = targetElement.scrollHeight + 'px';
+                    
+                    // 更新按钮文字
+                    button.innerHTML = '<i class="fas fa-eye-slash me-1"></i>收起旅行笔记';
+                } else {
+                    // 收起
+                    targetElement.style.display = 'none';
+                    
+                    // 更新按钮文字
+                    button.innerHTML = '<i class="fas fa-eye me-1"></i>查看旅行笔记';
+                }
+            } else {
+                alert('功能暂时不可用，请刷新页面重试');
+            }
+        }
+    </script>
+</body>
+</html>

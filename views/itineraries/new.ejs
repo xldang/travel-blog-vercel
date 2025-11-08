@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加新行程 - <%= travel.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .editor-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .editor-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .editor-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        .editor-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .form-section {
+            padding: 40px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            padding: 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+            transform: translateY(-1px);
+        }
+        .quill-editor {
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .ql-toolbar {
+            border: none;
+            border-bottom: 2px solid #e2e8f0;
+            background: #f7fafc;
+        }
+        .ql-container {
+            border: none;
+            min-height: 400px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e0;
+            transform: translateY(-1px);
+        }
+        .form-row {
+            margin-bottom: 25px;
+        }
+        .datetime-local {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="editor-header">
+            <h1>添加新行程</h1>
+            <p><%= travel.title %></p>
+        </div>
+        
+        <div class="form-section">
+            <form id="itineraryForm" method="POST" action="/itineraries">
+                <input type="hidden" name="travelId" value="<%= travel.id %>">
+                
+                <!-- 行程标题 -->
+                <div class="form-row">
+                    <label class="form-label">行程标题 *</label>
+                    <input type="text" class="form-control" name="title" 
+                           placeholder="例如：抵达北京南站" required>
+                </div>
+
+                <!-- 日期时间 -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-row">
+                            <label class="form-label">开始日期时间 *</label>
+                            <input type="datetime-local" class="form-control datetime-local" 
+                                   name="startDateTime" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-row">
+                            <label class="form-label">结束日期时间</label>
+                            <input type="datetime-local" class="form-control datetime-local" 
+                                   name="endDateTime">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 出行方式和花费 -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-row">
+                            <label class="form-label">出行方式 *</label>
+                            <select class="form-select" name="transportMethod" required>
+                                <option value="">请选择出行方式</option>
+                                <option value="火车">火车</option>
+                                <option value="飞机">飞机</option>
+                                <option value="客车">客车</option>
+                                <option value="自驾">自驾</option>
+                                <option value="自行游览">自行游览</option>
+                                <option value="住宿">住宿</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-row">
+                            <label class="form-label">出行花费（元）</label>
+                            <input type="number" class="form-control" name="cost" 
+                                   placeholder="0.00" step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 富文本编辑器 -->
+                <div class="form-row">
+                    <label class="form-label">行程内容</label>
+                    <div id="editor" class="quill-editor"></div>
+                    <input type="hidden" name="content" id="content">
+                </div>
+
+                <div class="text-center mt-5">
+                    <a href="/travels/<%= travel.id %>" class="btn btn-cancel me-3">取消</a>
+                    <button type="submit" class="btn btn-save">添加行程</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>
+        // 初始化Quill编辑器（WordPress风格）
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'font': [] }],
+                    [{ 'align': [] }],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            },
+            placeholder: '记录你的精彩瞬间和旅行体验...'
+        });
+
+        // 表单提交处理
+        document.getElementById('itineraryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 获取编辑器内容
+            document.getElementById('content').value = quill.root.innerHTML;
+            
+            // 验证表单
+            const title = this.title.value.trim();
+            const startDateTime = this.startDateTime.value;
+            const transportMethod = this.transportMethod.value;
+            
+            if (!title) {
+                alert('请输入行程标题');
+                return;
+            }
+            if (!startDateTime) {
+                alert('请选择开始日期时间');
+                return;
+            }
+            if (!transportMethod) {
+                alert('请选择出行方式');
+                return;
+            }
+            
+            this.submit();
+        });
+
+        // 图片上传处理（自动优化大小）
+        quill.getModule('toolbar').addHandler('image', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            input.onchange = function(e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    Array.from(files).forEach(file => {
+                        if (file.size > 50 * 1024 * 1024) {
+                            alert('图片大小不能超过50MB');
+                            return;
+                        }
+                        
+                        // 压缩大图片
+                        if (file.size > 2 * 1024 * 1024) {
+                            compressImage(file, 1920, 1920, 0.85).then(compressedFile => {
+                                uploadImage(compressedFile);
+                            });
+                        } else {
+                            uploadImage(file);
+                        }
+                    });
+                }
+            };
+            input.click();
+        });
+
+        // 图片压缩函数
+        function compressImage(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    let { width, height } = img;
+                    
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    canvas.toBlob((blob) => {
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                    }, 'image/jpeg', quality);
+                };
+                
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.innerHTML = '<div style="padding: 10px; background: #f0f0f0; border-radius: 4px; margin: 10px 0;">正在上传图片...</div>';
+            quill.container.appendChild(loadingIndicator);
+
+            fetch('/itineraries/upload-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                quill.container.removeChild(loadingIndicator);
+                if (data.success) {
+                    const range = quill.getSelection();
+                    quill.insertEmbed(range.index, 'image', data.url);
+                } else {
+                    alert('图片上传失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                quill.container.removeChild(loadingIndicator);
+                console.error('Error:', error);
+                alert('图片上传失败，请检查网络连接或图片大小');
+            });
+        }
+    </script>
+</body>
+</html>

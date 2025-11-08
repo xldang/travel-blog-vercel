@@ -1,0 +1,625 @@
+:root {
+    --primary-color: #87CEEB;
+    --secondary-color: #90EE90;
+    --accent-color: #00CED1;
+    --warning-color: #FFD700;
+    --danger-color: #FF6347;
+    --text-dark: #2C3E50;
+    --text-light: #7F8C8D;
+    --bg-light: #F8F9FA;
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+body {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color)) !important;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 导航栏优化 */
+.navbar-brand small {
+    font-size: 0.7em;
+    opacity: 0.8;
+}
+
+.navbar-nav .nav-link {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin: 0 2px;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.user-dropdown .dropdown-menu {
+    border: none;
+    box-shadow: var(--shadow);
+    border-radius: 12px;
+    margin-top: 8px;
+    min-width: 200px;
+}
+
+.user-dropdown .dropdown-item {
+    padding: 12px 16px;
+    transition: all 0.2s ease;
+}
+
+.user-dropdown .dropdown-item:hover {
+    background-color: var(--bg-light);
+}
+
+.dropdown-item-text {
+    padding: 12px 16px;
+}
+
+.dropdown-item-text strong {
+    color: var(--text-dark);
+    font-size: 1.1em;
+}
+
+.dropdown-item-text .text-warning {
+    font-weight: 600;
+}
+
+/* 响应式优化 */
+@media (max-width: 991px) {
+    .navbar-nav {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .navbar-nav .nav-link {
+        margin: 4px 0;
+        padding: 12px 16px;
+    }
+    
+    .navbar-nav .btn {
+        margin: 8px 0;
+        width: 100%;
+        text-align: left;
+    }
+    
+    .dropdown-menu {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .dropdown-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand span {
+        font-size: 1.1em;
+    }
+    
+    .navbar-brand small {
+        display: none;
+    }
+}
+
+.card {
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+}
+
+.travel-card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+.itinerary-list {
+    position: relative;
+}
+
+.itinerary-item {
+    position: relative;
+    margin-bottom: 3rem;
+    padding-top: 1rem;
+}
+
+.itinerary-card {
+    position: relative;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: none;
+    overflow: visible;
+}
+
+.itinerary-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+/* 卡片连接效果 */
+.itinerary-item:not(:last-child) .itinerary-card::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -3rem;
+    width: 2px;
+    height: 3rem;
+    background: repeating-linear-gradient(
+        to bottom,
+        var(--primary-color) 0px,
+        var(--primary-color) 4px,
+        transparent 4px,
+        transparent 8px
+    );
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* 动态呼吸圆点 */
+.itinerary-card::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -20px;
+    width: 16px;
+    height: 16px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--accent-color), 0 0 15px rgba(0, 206, 209, 0.4);
+    transform: translateX(-50%);
+    z-index: 2;
+    animation: breathe 2s ease-in-out infinite;
+}
+
+.itinerary-item:first-child .itinerary-card::before {
+    display: none;
+}
+
+.itinerary-card .card-body {
+    padding: 2rem;
+    position: relative;
+}
+
+/* 动态呼吸圆点 */
+.itinerary-card:hover::before {
+    animation: breathe-hover 1s ease-in-out infinite;
+}
+
+@keyframes breathe {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        box-shadow: 0 0 0 2px var(--accent-color), 0 0 15px rgba(0, 206, 209, 0.4);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.4);
+        box-shadow: 0 0 0 2px var(--accent-color), 0 0 25px rgba(0, 206, 209, 0.6);
+    }
+}
+
+@keyframes breathe-hover {
+    0%, 100% {
+        transform: translateX(-50%) scale(1.3);
+        box-shadow: 0 0 0 2px var(--accent-color), 0 0 20px rgba(0, 206, 209, 0.5);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.7);
+        box-shadow: 0 0 0 2px var(--accent-color), 0 0 35px rgba(0, 206, 209, 0.8);
+    }
+}
+
+.itinerary-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.itinerary-card .card-body {
+    padding: 2rem;
+}
+
+.itinerary-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.itinerary-date-badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    font-weight: 500;
+}
+
+.itinerary-content {
+    color: #666;
+    line-height: 1.6;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.itinerary-info-compact {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border: 1px solid #e9ecef;
+}
+
+.itinerary-info-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.itinerary-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.itinerary-info-row i {
+    width: 20px;
+    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+.itinerary-info-row .info-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-right: 0.5rem;
+    white-space: nowrap;
+}
+
+.itinerary-info-row .info-value {
+    color: #666;
+    flex: 1;
+}
+
+.itinerary-images {
+    margin-top: 1.5rem;
+}
+
+.itinerary-image {
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.itinerary-image:hover {
+    transform: scale(1.05);
+}
+
+.itinerary-actions {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.itinerary-notes-section {
+    margin: 1.5rem 0;
+}
+
+.itinerary-notes-content {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 1rem;
+}
+
+.itinerary-notes-content .itinerary-content {
+    margin: 0;
+    border: none;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+}
+
+.itinerary-notes-content .itinerary-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.itinerary-notes-section .btn {
+    transition: all 0.3s ease;
+}
+
+.itinerary-notes-section .btn:hover {
+    transform: translateY(-1px);
+}
+
+.travel-description {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-left: 4px solid var(--accent-color);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #495057;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.travel-description p {
+    margin: 0;
+    font-weight: 400;
+}
+
+@media (max-width: 768px) {
+    .travel-description {
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .itinerary-item {
+        margin-bottom: 1.5rem;
+    }
+    
+    .itinerary-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    
+    .itinerary-item:not(:last-child) .itinerary-card::after {
+        height: 1.5rem;
+        bottom: -1.5rem;
+    }
+    
+    .itinerary-card::before {
+        width: 10px;
+        height: 10px;
+        top: -10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .itinerary-item {
+        margin-bottom: 1.25rem;
+    }
+    
+    .itinerary-card .card-body {
+        padding: 1.25rem 1rem;
+    }
+    
+    .itinerary-title {
+        font-size: 1.25rem;
+    }
+    
+    .itinerary-info-item {
+        padding: 0.75rem;
+    }
+    
+    .itinerary-item:not(:last-child) .itinerary-card::after {
+        height: 1.25rem;
+        bottom: -1.25rem;
+    }
+    
+    .itinerary-card::before {
+        width: 8px;
+        height: 8px;
+        top: -8px;
+    }
+}
+
+.countdown-timer {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: bold;
+    display: inline-block;
+    box-shadow: var(--shadow);
+    margin-bottom: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+.countdown-timer.urgent {
+    background: linear-gradient(135deg, var(--danger-color), var(--warning-color));
+    animation: urgent-pulse 1s infinite;
+}
+
+@keyframes urgent-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(255, 99, 71, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(255, 99, 71, 0.6);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(255, 99, 71, 0.3);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .timeline::before {
+        left: 20px;
+    }
+    
+    .timeline-marker {
+        left: 20px;
+    }
+    
+    .timeline-item {
+        padding-left: 50px;
+    }
+    
+    .timeline-content {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        text-align: left;
+    }
+    
+    .container .timeline {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .timeline::before {
+        left: 1rem;
+    }
+    
+    .timeline-marker {
+        left: 1rem;
+        width: 30px;
+        height: 30px;
+    }
+    
+    .timeline-item {
+        padding-left: 40px;
+    }
+    
+    .timeline-content {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .container .timeline {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+.img-fluid {
+    border-radius: 10px;
+}
+
+.card-img-top {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.badge {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+}
+
+footer {
+    margin-top: auto;
+    background: linear-gradient(135deg, #2C3E50, #34495E) !important;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}

@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      String   @default("viewer")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Travel {
+  id             Int         @id @default(autoincrement())
+  title          String
+  description    String?
+  startLocation  String?
+  endLocation    String?
+  transportMethod String?
+  totalCost      Decimal?    @db.Decimal(10, 2)
+  startDate      DateTime?
+  endDate        DateTime?
+  coverImage     String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  itineraries    Itinerary[]
+
+  @@map("travels")
+}
+
+model Itinerary {
+  id              Int         @id @default(autoincrement())
+  travelId        Int         @map("travel_id")
+  title           String
+  content         String?
+  location        String?
+  travelDate      DateTime    @map("travel_date")
+  sequence        Int         @default(0)
+  images          String?
+  cost            Decimal?    @db.Decimal(10, 2)
+  transportMethod String
+  travelMethodInfo String?    @map("travel_method_info")
+  flightNumber    String?     @map("flight_number")
+  trainNumber     String?     @map("train_number")
+  busNumber       String?     @map("bus_number")
+  startLocation   String?     @map("start_location")
+  endLocation     String?     @map("end_location")
+  startTime       String?     @map("start_time")
+  endTime         String?     @map("end_time")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  travel          Travel      @relation(fields: [travelId], references: [id], onDelete: Cascade)
+
+  @@map("itineraries")
+}
+
+model Setting {
+  key   String @id
+  value String?
+
+  @@map("settings")
+}

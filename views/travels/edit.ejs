@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑游记 - <%= travel.title %> - <%= websiteTitle %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/navbar-scroll.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-mountain-sun me-2"></i>旅游游记博客
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/travels">所有游记</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/travels/new">创建游记</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5" style="margin-top: 80px;">
+        <% if (success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= success_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+        
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= error_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">                    
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-edit me-2"></i>编辑游记 - <%= travel.title %>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/travels/<%= travel.id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">游记标题 *</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="<%= travel.title %>" required
+                                       placeholder="例如：北京三日游攻略">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">游记描述</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"
+                                          placeholder="简要描述这次旅行的特色和亮点..."><%= travel.description || '' %></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startLocation" class="form-label">出发地点</label>
+                                    <input type="text" class="form-control" id="startLocation" name="startLocation"
+                                           value="<%= travel.startLocation || '' %>"
+                                           placeholder="例如：上海">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="endLocation" class="form-label">目的地</label>
+                                    <input type="text" class="form-control" id="endLocation" name="endLocation"
+                                           value="<%= travel.endLocation || '' %>"
+                                           placeholder="例如：北京">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startDate" class="form-label">出发日期</label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate"
+                                           value="<%= travel.startDate ? new Date(travel.startDate).toISOString().split('T')[0] : '' %>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="endDate" class="form-label">结束日期</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate"
+                                           value="<%= travel.endDate ? new Date(travel.endDate).toISOString().split('T')[0] : '' %>">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="coverImage" class="form-label">封面图片</label>
+                                <input type="file" class="form-control" id="coverImage" name="coverImage"
+                                       accept="image/*">
+                                <small class="text-muted">支持 JPG、PNG、GIF 格式，建议尺寸 1200x600 像素</small>
+                                <% if (travel.coverImage) { %>
+                                    <div class="mt-2">
+                                        <img src="/uploads/<%= travel.coverImage %>" alt="当前封面" style="max-width: 200px; max-height: 100px;" class="img-thumbnail">
+                                        <br>
+                                        <small class="text-muted">当前封面图片</small>
+                                    </div>
+                                <% } %>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                <a href="/travels" class="btn btn-secondary">取消</a>
+                                <div>
+                                    <form action="/travels/<%= travel.id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('确定要删除这篇游记吗？删除后将无法恢复！');">
+                                        <button type="submit" class="btn btn-outline-danger me-2">
+                                            <i class="fas fa-trash me-1"></i>删除游记
+                                        </button>
+                                    </form>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>保存修改
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; <%= new Date().getFullYear() %> <%= websiteTitle %> - fallincloud.com 版权所有</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/navbar-scroll.js"></script>
+</body>
+</html>
