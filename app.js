@@ -59,6 +59,32 @@ app.get('/', (req, res) => {
     res.redirect('/travels');
 });
 
+// 测试图片URL转换路由
+app.get('/test-image-url', (req, res) => {
+  const { convertToObsUrl } = require('./utils/obs');
+
+  const testUrls = [
+    '1754737899640-240149778.jpg',
+    '/uploads/1754737899640-240149778.jpg',
+    'https://travel-blog.obs.cn-north-4.myhuaweicloud.com/1754737899640-240149778.jpg'
+  ];
+
+  const results = testUrls.map(url => ({
+    input: url,
+    output: convertToObsUrl(url)
+  }));
+
+  res.json({
+    timestamp: new Date().toISOString(),
+    environment: {
+      OBS_ENDPOINT: process.env.OBS_ENDPOINT,
+      OBS_BUCKET: process.env.OBS_BUCKET,
+      has_obs_config: !!(process.env.OBS_ENDPOINT && process.env.OBS_BUCKET)
+    },
+    conversions: results
+  });
+});
+
 // 健康检查路由
 app.get('/health', async (req, res) => {
     console.log('DEBUG: Health check requested');
