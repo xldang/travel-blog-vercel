@@ -171,6 +171,17 @@ router.get('/travels/:id', async (req, res) => {
             // 如果解析失败，保持原样
           }
         }
+
+        // 转换content字段中的图片URL
+        if (itinerary.content) {
+          itinerary.content = itinerary.content.replace(
+            /<img([^>]+)src=["']([^"']+)["']/gi,
+            (match, attrs, src) => {
+              const convertedSrc = convertToObsUrl(src);
+              return `<img${attrs}src="${convertedSrc}"`;
+            }
+          );
+        }
       });
     }
 
