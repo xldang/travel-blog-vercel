@@ -31,8 +31,11 @@ function convertToObsUrl(localPath) {
     return localPath;
   }
 
-  // 移除开头的斜杠和uploads/前缀
-  let fileName = localPath.replace(/^\/+/, '').replace(/^uploads\//, '');
+  // 移除开头的斜杠，保留或添加uploads/前缀
+  let fileName = localPath.replace(/^\/+/, '');
+  if (!fileName.startsWith('uploads/')) {
+    fileName = `uploads/${fileName}`;
+  }
 
   return getObsImageUrl(fileName);
 }
