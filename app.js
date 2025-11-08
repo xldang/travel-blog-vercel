@@ -8,7 +8,14 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+});
 const travelRoutes = require('./routes/travels');
 const itineraryRoutes = require('./routes/itineraries');
 const authRoutes = require('./routes/auth');

@@ -80,21 +80,40 @@ async function uploadToObs(fileBuffer, fileName, contentType = 'image/jpeg') {
         'Content-Type': contentType,
         'x-amz-acl': 'public-read',
         'Content-Length': fileBuffer.length
-      }
+      },
+      timeout: 30000 // 30秒超时
     };
 
     const req = https.request(options, (res) => {
-      if (res.statusCode === 200) {
-        resolve(getObsImageUrl(fileName));
-      } else {
-        reject(new Error(`OBS upload failed: ${res.statusCode} ${res.statusMessage}`));
-      }
+      let responseData = '';
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          console.log('DEBUG: OBS upload successful for file:', fileName);
+          resolve(getObsImageUrl(fileName));
+        } else {
+          console.error('DEBUG: OBS upload failed with status:', res.statusCode, res.statusMessage);
+          console.error('DEBUG: Response data:', responseData);
+          reject(new Error(`OBS upload failed: ${res.statusCode} ${res.statusMessage}`));
+        }
+      });
+    });
+
+    req.on('timeout', () => {
+      console.error('DEBUG: OBS upload timeout for file:', fileName);
+      req.destroy();
+      reject(new Error('OBS upload timeout'));
     });
 
     req.on('error', (error) => {
+      console.error('DEBUG: OBS upload error for file:', fileName, error.message);
       reject(error);
     });
 
+    console.log('DEBUG: Starting OBS upload for file:', fileName, 'size:', fileBuffer.length);
     req.write(fileBuffer);
     req.end();
   });

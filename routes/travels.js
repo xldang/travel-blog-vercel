@@ -84,43 +84,100 @@ router.get('/travels/new', isAdmin, (req, res) => {
 });
 
 router.post('/travels', isAdmin, upload.single('coverImage'), async (req, res) => {
-  console.log('DEBUG: POST /travels - Admin user:', {
-    userId: req.user.id,
-    username: req.user.username,
-    role: req.user.role
+  const startTime = Date.now();
+  console.log('DEBUG: POST /travels - Start processing');
+  console.log('DEBUG: Admin user:', {
+    userId: req.user?.id,
+    username: req.user?.username,
+    role: req.user?.role
   });
+  console.log('DEBUG: Request body:', req.body);
+  console.log('DEBUG: File uploaded:', !!req.file);
 
   try {
     const { title, description, startLocation, endLocation, transportMethod, totalCost, startDate, endDate } = req.body;
+
+    // 验证必填字段
+    if (!title || !title.trim()) {
+      console.log('DEBUG: Validation failed - title is required');
+      return res.redirect('/travels/new?error=' + encodeURIComponent('标题不能为空'));
+    }
 
     let coverImageUrl = null;
 
     // 如果有上传文件，上传到OBS
     if (req.file) {
-      const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
-      coverImageUrl = await uploadToObs(req.file.buffer, fileName, req.file.mimetype);
+      console.log('DEBUG: Starting OBS upload...');
+      const uploadStartTime = Date.now();
+      try {
+        const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
+        console.log('DEBUG: File details:', {
+          originalName: req.file.originalname,
+          fileName: fileName,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        });
+
+        coverImageUrl = await uploadToObs(req.file.buffer, fileName, req.file.mimetype);
+        const uploadEndTime = Date.now();
+        console.log('DEBUG: OBS upload completed in', uploadEndTime - uploadStartTime, 'ms');
+        console.log('DEBUG: OBS URL:', coverImageUrl);
+      } catch (uploadError) {
+        console.error('DEBUG: OBS upload failed:', uploadError);
+        return res.redirect('/travels/new?error=' + encodeURIComponent('图片上传失败：' + uploadError.message));
+      }
     }
 
+    console.log('DEBUG: Preparing travel data...');
     const travelData = {
-      title,
-      description,
-      startLocation,
-      endLocation,
-      transportMethod,
+      title: title.trim(),
+      description: description?.trim() || null,
+      startLocation: startLocation?.trim() || null,
+      endLocation: endLocation?.trim() || null,
+      transportMethod: transportMethod?.trim() || null,
       totalCost: totalCost ? parseFloat(totalCost) : null,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       coverImage: coverImageUrl
     };
 
-    await prisma.travel.create({
+    console.log('DEBUG: Travel data prepared:', travelData);
+    console.log('DEBUG: Creating travel record in database...');
+
+    const dbStartTime = Date.now();
+    const result = await prisma.travel.create({
       data: travelData
     });
+    const dbEndTime = Date.now();
+
+    console.log('DEBUG: Database operation completed in', dbEndTime - dbStartTime, 'ms');
+    console.log('DEBUG: Created travel with ID:', result.id);
+
+    const endTime = Date.now();
+    console.log('DEBUG: Total processing time:', endTime - startTime, 'ms');
 
     res.redirect('/travels?success=' + encodeURIComponent('游记创建成功'));
   } catch (error) {
-    console.error('创建游记失败:', error);
-    res.redirect('/travels/new?error=' + encodeURIComponent('创建游记失败'));
+    const endTime = Date.now();
+    console.error('ERROR: 创建游记失败 after', endTime - startTime, 'ms');
+    console.error('ERROR: Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack?.substring(0, 500) // 限制堆栈跟踪长度
+    });
+
+    // 根据错误类型提供更具体的错误信息
+    let errorMessage = '创建游记失败';
+    if (error.code === 'P2002') {
+      errorMessage = '数据重复，请检查输入';
+    } else if (error.code === 'P1001') {
+      errorMessage = '数据库连接失败';
+    } else if (error.message.includes('timeout')) {
+      errorMessage = '操作超时，请重试';
+    }
+
+    res.redirect('/travels/new?error=' + encodeURIComponent(errorMessage + '：' + error.message));
   }
 });
 
