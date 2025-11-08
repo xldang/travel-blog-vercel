@@ -15,17 +15,29 @@ async function migrateData() {
   try {
     console.log('开始数据迁移...');
 
-    // 1. 迁移Settings表
-    console.log('迁移Settings表...');
-    const settings = await sqlite.query('SELECT * FROM settings', { type: Sequelize.QueryTypes.SELECT });
-    for (const setting of settings) {
-      await prisma.setting.upsert({
-        where: { key: setting.key },
-        update: { value: setting.value },
-        create: { key: setting.key, value: setting.value }
-      });
+    // 检查SQLite数据库中的表
+    const tables = await sqlite.query(
+      'SELECT name FROM sqlite_master WHERE type="table" AND name NOT LIKE "sqlite_%"',
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const tableNames = tables.map(t => t.name);
+    console.log('发现的表:', tableNames.join(', '));
+
+    // 1. 迁移Settings表 (如果存在)
+    if (tableNames.includes('settings')) {
+      console.log('迁移Settings表...');
+      const settings = await sqlite.query('SELECT * FROM settings', { type: Sequelize.QueryTypes.SELECT });
+      for (const setting of settings) {
+        await prisma.setting.upsert({
+          where: { key: setting.key },
+          update: { value: setting.value },
+          create: { key: setting.key, value: setting.value }
+        });
+      }
+      console.log(`迁移了 ${settings.length} 条设置数据`);
+    } else {
+      console.log('跳过Settings表 (不存在)');
     }
-    console.log(`迁移了 ${settings.length} 条设置数据`);
 
     // 2. 迁移Users表
     console.log('迁移Users表...');
