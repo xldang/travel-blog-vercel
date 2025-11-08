@@ -53,6 +53,26 @@ app.get('/', (req, res) => {
     res.redirect('/travels');
 });
 
+// 健康检查路由
+app.get('/health', async (req, res) => {
+    try {
+        // 测试数据库连接
+        await prisma.$connect();
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            database: 'connected'
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            database: 'disconnected',
+            error: error.message
+        });
+    }
+});
+
 // Vercel serverless function导出
 module.exports = app;
 

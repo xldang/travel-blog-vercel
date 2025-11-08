@@ -47,8 +47,8 @@ router.get('/travels', async (req, res) => {
     res.render('travels/index', { travels });
   } catch (error) {
     console.error('获取游记列表失败:', error);
-    req.flash('error_msg', '获取游记列表失败');
-    res.redirect('/');
+    // 避免重定向循环，直接渲染空列表
+    res.render('travels/index', { travels: [] });
   }
 });
 
