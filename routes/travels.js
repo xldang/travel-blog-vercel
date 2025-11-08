@@ -9,17 +9,13 @@ const prisma = new PrismaClient();
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname))
-  }
-});
+const storage = multer.memoryStorage();
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB限制
+  },
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -101,12 +97,8 @@ router.post('/travels', isAdmin, upload.single('coverImage'), async (req, res) =
 
     // 如果有上传文件，上传到OBS
     if (req.file) {
-      const fs = require('fs');
-      const fileBuffer = fs.readFileSync(req.file.path);
-      coverImageUrl = await uploadToObs(fileBuffer, req.file.filename, req.file.mimetype);
-
-      // 删除本地临时文件
-      fs.unlinkSync(req.file.path);
+      const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
+      coverImageUrl = await uploadToObs(req.file.buffer, fileName, req.file.mimetype);
     }
 
     const travelData = {
@@ -251,12 +243,8 @@ router.put('/travels/:id', isAdmin, upload.single('coverImage'), async (req, res
 
     // 如果有新上传文件，上传到OBS
     if (req.file) {
-      const fs = require('fs');
-      const fileBuffer = fs.readFileSync(req.file.path);
-      coverImageUrl = await uploadToObs(fileBuffer, req.file.filename, req.file.mimetype);
-
-      // 删除本地临时文件
-      fs.unlinkSync(req.file.path);
+      const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
+      coverImageUrl = await uploadToObs(req.file.buffer, fileName, req.file.mimetype);
     }
 
     const travelData = {

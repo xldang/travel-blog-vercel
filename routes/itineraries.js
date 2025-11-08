@@ -9,19 +9,12 @@ const prisma = new PrismaClient();
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname))
-  }
-});
+const storage = multer.memoryStorage();
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 50 * 1024 * 1024 // 50MB 限制
+    fileSize: 10 * 1024 * 1024 // 10MB限制
   },
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
@@ -270,13 +263,9 @@ router.post('/upload-image', isAdmin, upload.single('image'), async (req, res) =
       return res.json({ success: false, error: '没有选择图片文件' });
     }
 
-    // 读取文件并上传到OBS
-    const fs = require('fs');
-    const fileBuffer = fs.readFileSync(req.file.path);
-    const obsUrl = await uploadToObs(fileBuffer, req.file.filename, req.file.mimetype);
-
-    // 删除本地临时文件
-    fs.unlinkSync(req.file.path);
+    // 直接使用内存中的文件缓冲区上传到OBS
+    const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
+    const obsUrl = await uploadToObs(req.file.buffer, fileName, req.file.mimetype);
 
     res.json({ success: true, url: obsUrl });
   } catch (error) {
