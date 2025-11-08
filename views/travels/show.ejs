@@ -106,8 +106,13 @@
                     <% if (user && user.role === 'admin') { %>
                         <li class="nav-item">
                             <a class="nav-link fw-medium" href="/travels/new">
-                                <i class="fas fa-plus-circle me-1"></i>新建游記
+                                <i class="fas fa-plus-circle me-1"></i>新建游记
                             </a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-outline-light ms-2" data-bs-toggle="modal" data-bs-target="#addItineraryModal">
+                                <i class="fas fa-plus me-1"></i>添加行程
+                            </button>
                         </li>
                     <% } %>
                 </ul>
@@ -219,7 +224,19 @@
                         
                         <div class="d-flex align-items-center">
                             <i class="fas fa-coins text-warning me-2" style="color: #fd7e14;"></i>
-                            <span class="fw-medium" style="color: #495057;">¥<span id="totalCostDisplay">0.00</span></span>
+                            <span class="fw-medium" style="color: #495057;">¥<span id="totalCostDisplay">
+                                <%
+                                let totalCost = 0;
+                                if (travel.itineraries && travel.itineraries.length > 0) {
+                                    travel.itineraries.forEach(itinerary => {
+                                        if (itinerary.cost) {
+                                            totalCost += parseFloat(itinerary.cost) || 0;
+                                        }
+                                    });
+                                }
+                                %>
+                                <%= totalCost === 0 ? '未设置' : totalCost.toFixed(2) %>
+                            </span></span>
                         </div>
                         
                         <div class="d-flex align-items-center">
@@ -418,12 +435,9 @@
                         <div id="addTransportFields">
                             <div class="mb-3">
                                 <label class="form-label" id="addTravelMethodInfoLabel">出行详情</label>
-                                <input type="text" class="form-control" name="travelMethodInfo" 
+                                <input type="text" class="form-control" name="travelMethodInfo"
                                        placeholder="根据选择的出行方式填写相应信息">
                             </div>
-                        </div>
-                            </div>
-
                         </div>
                         
                         <div class="mb-3">
@@ -453,21 +467,6 @@
     <script src="/js/countdown.js"></script>
     <script src="/js/navbar-scroll.js"></script>
     <script>
-        // 计算总费用
-        function calculateTotalCost() {
-            let totalCost = 0;
-            <% if (travel.itineraries && travel.itineraries.length > 0) { %>
-                <% travel.itineraries.forEach(itinerary => { %>
-                    <% if (itinerary.cost) { %>
-                        totalCost += parseFloat('<%= itinerary.cost %>') || 0;
-                    <% } %>
-                <% }); %>
-            <% } %>
-            
-            const formattedCost = totalCost.toFixed(2);
-            document.getElementById('totalCostDisplay').textContent = totalCost === 0 ? '未设置' : formattedCost;
-        }
-
         // 动态字段切换功能
         function toggleAddTransportFields() {
             const transportMethod = document.querySelector('#addItineraryModal select[name="transportMethod"]').value;
