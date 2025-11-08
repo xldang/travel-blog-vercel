@@ -99,6 +99,100 @@ async function testEnvironment() {
   return true;
 }
 
+async function checkImagePaths() {
+  console.log('🔍 检查数据库中的图片路径...');
+
+  const { PrismaClient } = require('@prisma/client');
+  const prisma = new PrismaClient();
+
+  try {
+    // 检查travels表中的coverImage
+    const travels = await prisma.travel.findMany({
+      select: {
+        id: true,
+        title: true,
+        coverImage: true
+      }
+    });
+
+    console.log('📸 Travels表中的图片路径:');
+    travels.forEach(travel => {
+      console.log(`  ID ${travel.id} (${travel.title}): ${travel.coverImage || '无图片'}`);
+    });
+
+    // 检查itineraries表中的images
+    const itineraries = await prisma.itinerary.findMany({
+      select: {
+        id: true,
+        title: true,
+        images: true
+      }
+    });
+
+    console.log('📸 Itineraries表中的图片路径:');
+    itineraries.forEach(itinerary => {
+      console.log(`  ID ${itinerary.id} (${itinerary.title}): ${itinerary.images || '无图片'}`);
+    });
+
+    return true;
+  } catch (error) {
+    console.error('❌ 检查图片路径失败:', error.message);
+    return false;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+async function uploadImagesToOBS() {
+  console.log('📤 开始上传本地图片到OBS...');
+
+  const fs = require('fs');
+  const path = require('path');
+  const { uploadToObs } = require('../utils/obs');
+
+  try {
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+
+    // 获取所有图片文件
+    const files = fs.readdirSync(uploadsDir)
+      .filter(file => {
+        const ext = path.extname(file).toLowerCase();
+        return ['.jpg', '.jpeg', '.png', '.gif'].includes(ext);
+      });
+
+    console.log(`找到 ${files.length} 个图片文件`);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const file of files) {
+      try {
+        const filePath = path.join(uploadsDir, file);
+        const fileBuffer = fs.readFileSync(filePath);
+        const contentType = `image/${path.extname(file).slice(1)}`;
+
+        console.log(`上传中: ${file}`);
+        const obsUrl = await uploadToObs(fileBuffer, file, contentType);
+        console.log(`✅ 成功: ${file} -> ${obsUrl}`);
+
+        successCount++;
+      } catch (error) {
+        console.error(`❌ 失败: ${file} - ${error.message}`);
+        errorCount++;
+      }
+    }
+
+    console.log(`\n📊 上传完成:`);
+    console.log(`   成功: ${successCount} 个文件`);
+    console.log(`   失败: ${errorCount} 个文件`);
+
+    return successCount > 0;
+  } catch (error) {
+    console.error('❌ 上传图片失败:', error.message);
+    return false;
+  }
+}
+
 async function main() {
   console.log('🚀 开始本地环境测试...\n');
 
@@ -134,4 +228,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = { testDatabase, testOBS, testEnvironment };
+module.exports = { testDatabase, testOBS, testEnvironment, checkImagePaths, uploadImagesToOBS };
