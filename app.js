@@ -85,6 +85,24 @@ app.get('/test-image-url', (req, res) => {
   });
 });
 
+// 测试session状态路由
+app.get('/test-session', (req, res) => {
+  res.json({
+    timestamp: new Date().toISOString(),
+    session: {
+      exists: !!req.session,
+      userId: req.session?.userId,
+      username: req.session?.username,
+      role: req.session?.role,
+      sessionID: req.sessionID
+    },
+    environment: {
+      SESSION_SECRET: process.env.SESSION_SECRET ? 'SET' : 'NOT SET',
+      NODE_ENV: process.env.NODE_ENV
+    }
+  });
+});
+
 // 健康检查路由
 app.get('/health', async (req, res) => {
     console.log('DEBUG: Health check requested');

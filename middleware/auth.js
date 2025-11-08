@@ -12,18 +12,33 @@ const isAuthenticated = (req, res, next) => {
 
 // 检查用户是否为管理员
 const isAdmin = async (req, res, next) => {
+  console.log('DEBUG: isAdmin middleware - Session check');
+  console.log('  - req.session exists:', !!req.session);
+  console.log('  - req.session.userId:', req.session?.userId);
+  console.log('  - req.session.role:', req.session?.role);
+
   if (req.session && req.session.userId) {
     try {
+      console.log('DEBUG: Querying user from database...');
       const user = await prisma.user.findUnique({
         where: { id: req.session.userId }
       });
+      console.log('DEBUG: User found:', user ? { id: user.id, username: user.username, role: user.role } : null);
+
       if (user && user.role === 'admin') {
+        console.log('DEBUG: User is admin, proceeding...');
         return next();
+      } else {
+        console.log('DEBUG: User is not admin or user not found');
       }
     } catch (error) {
       console.error('权限验证错误:', error);
     }
+  } else {
+    console.log('DEBUG: No valid session found');
   }
+
+  console.log('DEBUG: Redirecting to login');
   req.flash('error_msg', '需要管理员权限');
   res.redirect('/login');
 };
