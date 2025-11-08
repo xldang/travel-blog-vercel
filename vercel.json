@@ -1,18 +1,15 @@
 {
   "version": 2,
-  "functions": {
-    "app.js": {
-      "runtime": "@vercel/node@18",
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "app.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "app.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
