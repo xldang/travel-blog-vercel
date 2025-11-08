@@ -33,7 +33,7 @@ router.get('/travels', async (req, res) => {
   console.log('DEBUG: Accessing /travels route');
   console.log('DEBUG: Request headers:', JSON.stringify(req.headers, null, 2));
   console.log('DEBUG: Environment variables check:');
-  console.log('  - DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  console.log('  - vercel_DATABASE_URL exists:', !!process.env.vercel_DATABASE_URL);
   console.log('  - SESSION_SECRET exists:', !!process.env.SESSION_SECRET);
 
   try {
